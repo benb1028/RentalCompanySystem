@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>New user</h1>
+	{% if msg %}
+      <div id="errormsg">
+	  {% for err in msg %}
+		{{ err }}<br>
+	  {% endfor %}
+	  </div>
+    {% endif %}
+		
+		<form action="/newuser" method="POST">
+			First Name:<br>
+			<input type="text" name="fname" /><br><br>
+			
+			Last Name:<br>
+			<input type="text" name="lname" /><br><br>
+			
+			Email:<br>
+			<input type="text" name="email" /><br><br>
+			
+			Password:<br>
+			<input type="password" name="password" /><br><br>
+			
+			Retype Password:<br>
+			<input type="password" name="password2" /><br><br>
+			
+			Type:<br>
+			<select name="type">
+				<option value=0 >Tenant</option>
+				<option value=1 >Landlord</option>
+				<option value=2 >Admin</option>
+			</select>
+			
+			<br>
+			
+			<input type="submit" value="Save user"/>
+			
+		</form>
+{% endblock %}
