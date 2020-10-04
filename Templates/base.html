@@ -33,7 +33,7 @@
 	  </script>
     </head>
     <body>
-        <div>Goto: <a href="/main">Main menu</a> <a href="/logout">Logout</a></div>
+        <div>Goto: <a href="{{ url_for('home') }}">Main menu</a> <a href="/logout">Logout</a></div>
         <hr>
         {% block content %}{% endblock %}
     </body>

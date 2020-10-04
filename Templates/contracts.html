@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Contracts</h1>
+		<a href={{ url_for('newunit') }}>Add new unit</a>
+		<table>
+		<tr>
+			<th>ID</th>
+			<th>Start Date</th>
+			<th>End Date</th>
+			<th>Monthly Charge</th>
+			<th>Tenent</th>
+			<th>Landlord</th>
+			<th>Unit</th>
+		</tr>
+    {% for contract in contracts %}
+		<tr>
+			<td>{{ contract.CID }}</a></td>
+			<td>{{ contract.StartDate }}</td>
+			<td>{{ contract.EndDate }}</td>
+			<td>${{ contract.MonthlyCharge }}</td>
+			<td><a href={{ url_for('user', username=contract.TUserName) }}>{{ contract.TUserName }}</td>
+			<td><a href={{ url_for('user', username=contract.LUserName) }}>{{ contract.LUserName }}</td>
+			<td>{{ contract.UnitID }}</td>
+		</tr>
+    {% endfor %}
+	</table>
+{% endblock %}

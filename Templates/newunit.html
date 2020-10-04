@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>New unit</h1>
+	{% if msg %}
+      <div id="errormsg">
+	  {% for err in msg %}
+		{{ err }}<br>
+	  {% endfor %}
+	  </div>
+    {% endif %}
+		
+		<form action={{ url_for('newunit') }} method="POST">
+			Address Line 1:<br>
+			<input type="text" name="Address1" /><br><br>
+			
+			Address Line 2:<br>
+			<input type="text" name="Address2" /><br><br>
+			
+			Bedrooms:<br>
+			<input type="number" name="Bedrooms" min="1" /><br><br>
+			
+			Bathrooms:<br>
+			<input type="number" name="Bathrooms" min="1" /><br><br>
+			
+			Area (Square Feet):<br>
+			<input type="number" name="Area" min="1" /><br><br>
+			
+			Maximum Occupancy:<br>
+			<input type="number" name="MaxOccupancy" min="1" /><br><br>
+			
+			Monthly Rent Charge:<br>
+			<input type="number" name="StdCost" min="0" /><br><br>
+			
+			Landlord:<br>
+			<select name="LandlordID">
+				{% for landlord in landlords %}
+					<option value={{ landlord.UserID }} >{{ landlord.FirstName }} {{ landlord.LastName }}</option>
+				{% endfor %}
+			</select>
+			
+			<br>
+			
+			<input type="submit" value="Save unit"/>
+			
+		</form>
+{% endblock %}

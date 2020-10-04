@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Bills</h1>
+		
+		<table>
+		<tr>
+			<th>ID</th>
+			<th>Total Due</th>
+			<th>Due By</th>
+			<th>Amount Paid</th>
+			<th>Date Paid</th>
+			<th>Date Billed</th>
+			<th>Tenent</th>
+			<th>Landlord</th>
+		</tr>
+    {% for bill in bills %}
+		<tr>
+			<td>{{ bill.BID }}</a></td>
+			<td>${{ bill.AmntDue }}</td>
+			<td>{{ bill.DateDue }}</td>
+			<td>${{ bill.AmntPaid }}</td>
+			<td>{{ bill.DatePaid }}</td>
+			<td>{{ bill.DateBilled }}</td>
+			<td><a href={{ url_for('user', username=bill.TUserName) }}>{{ bill.TUserName }}</td>
+			<td><a href={{ url_for('user', username=bill.LUserName) }}>{{ bill.LUserName }}</td>
+		</tr>
+    {% endfor %}
+	</table>
+{% endblock %}

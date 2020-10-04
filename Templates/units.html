@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Units</h1>
+		<a href={{ url_for('newunit') }}>Add new unit</a>
+		<table>
+		<tr>
+			<th>ID</th>
+			<th>Address Line 1</th>
+			<th>Address Line 2</th>
+			<th>Landlord</th>
+			<th>Current Occupancy</th>
+		</tr>
+    {% for unit in units %}
+		<tr>
+			<td><a href="unit?id={{ unit.UID }}">{{ unit.UID }}</a></td>
+			<td>{{ unit.Address1 }}</td>
+			<td>{{ unit.Address2 }}</td>
+			<td>{{ unit.LandlordID }}</td>
+			<td>{{ unit.CurrOccupancy }}</td>
+		</tr>
+    {% endfor %}
+	</table>
+{% endblock %}

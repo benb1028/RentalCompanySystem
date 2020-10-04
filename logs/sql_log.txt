@@ -1,0 +1,83 @@
+2020-08-11 16:07:49.462389 - SELECT * FROM `Users` []
+2020-08-11 16:08:54.637512 - SELECT * FROM `Users` WHERE `email` = %s;"bb@gmail.com"
+2020-08-11 16:09:18.968123 - SELECT * FROM `Users` WHERE `email` = %s;"brooksb@clarkson.edu"
+2020-08-11 16:10:10.264540 - SELECT * FROM `Users` WHERE `email` = %s;"bb@gmail.com"
+2020-08-20 15:52:17.931196 - SELECT * FROM `Users` []
+2020-08-20 16:16:36.644476 - SELECT * FROM `Users` []
+2020-08-20 16:19:05.827037 - SELECT * FROM `Users` []
+2020-08-24 17:07:46.703236 - SELECT * FROM `Buildings` []
+2020-08-24 17:09:22.427581 - SELECT * FROM `Users` []
+2020-08-24 17:44:52.667873 - SELECT * FROM `Users` []
+2020-08-24 17:52:53.484547 - SELECT * FROM `Users` []
+2020-08-24 17:52:57.331553 - SELECT * FROM `Buildings` []
+2020-08-24 17:53:00.446898 - SELECT * FROM `Buildings` []
+2020-08-27 11:25:34.770168 - SELECT * FROM `Buildings` []
+2020-08-27 11:25:41.573852 - SELECT * FROM `Users` []
+2020-09-01 11:19:32.171587 - SELECT * FROM `Users` []
+2020-09-01 11:19:41.762122 - SELECT * FROM `Buildings` []
+2020-09-01 13:14:42.564406 - SELECT * FROM `Buildings` []
+2020-09-14 13:52:19.281802 - SELECT * FROM `Buildings` []
+2020-09-14 14:14:06.674137 - SELECT * FROM `Units` []
+2020-09-28 17:45:33.495474 - SELECT * FROM `Users` []
+2020-09-28 17:45:38.633311 - SELECT * FROM `Units` []
+2020-09-28 17:52:11.475631 - SELECT * FROM `Units` []
+2020-09-28 17:55:24.383803 - SELECT * FROM `Users` WHERE `Type` = %s;"Landlord"
+2020-09-28 17:59:25.363592 - SELECT * FROM `Units` []
+2020-09-28 17:59:27.207535 - SELECT * FROM `Users` WHERE `Type` = %s;"Landlord"
+2020-09-28 17:59:52.551272 - SELECT * FROM `Users` WHERE `Type` = %s;"Landlord"
+2020-09-29 13:44:03.920662 - SELECT * FROM `Units` []
+2020-09-29 13:44:10.990569 - SELECT * FROM `Users` WHERE `Type` = %s;"Landlord"
+2020-09-29 13:44:43.587739 - SELECT * FROM `Users` WHERE `Type` = %s;"Landlord"
+2020-09-29 13:46:40.907546 - SELECT * FROM `Users` WHERE `Type` = %s;"Landlord"
+2020-09-29 13:47:03.765957 - SELECT * FROM `Users` WHERE `Type` = %s;"Landlord"
+2020-09-29 13:48:05.116207 - SELECT * FROM `Users` WHERE `Type` = %s;"Landlord"
+2020-09-29 14:02:46.375931 - SELECT * FROM `Users` WHERE `Type` = %s;"Landlord"
+2020-09-29 14:02:47.034665 - SELECT * FROM `Units` WHERE `Address1` = %s;"123 Maple St"
+2020-09-29 14:29:38.472506 - SELECT * FROM `Users` WHERE `Type` = %s;"Landlord"
+2020-09-29 14:29:39.055204 - SELECT * FROM `Units` WHERE `Address1` = %s;"123 Maple St"
+2020-09-29 14:29:39.197130 - INSERT INTO `Units` (`MaxOccupancy`,`CurrOccupancy`,`Address1`,`Address2`,`Bedrooms`,`Bathrooms`,`Area`,`LandlordID`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s);[3, 0, "123 Maple St", "", 2, 1.0, 900.0, 3]
+2020-09-29 14:29:42.566248 - SELECT * FROM `Units` []
+2020-09-30 16:31:17.272346 - SELECT * FROM `Users` []
+2020-09-30 16:38:16.599798 - SELECT * FROM `Users` []
+2020-09-30 16:39:38.856235 - SELECT * FROM `Users` []
+2020-09-30 16:41:19.605198 - SELECT * FROM `Users` WHERE `Email` = %s;"bsmith"
+2020-09-30 16:41:19.892229 - SELECT * FROM `Users` WHERE `Username` = %s;"bsmith1"
+2020-09-30 16:43:11.393403 - SELECT * FROM `Users` WHERE `Email` = %s;"bsmith"
+2020-09-30 16:43:11.664271 - SELECT * FROM `Users` WHERE `Username` = %s;"bsmith1"
+2020-09-30 16:44:24.850607 - SELECT * FROM `Users` WHERE `Email` = %s;"bmsith@gmai.com"
+2020-09-30 16:44:25.161455 - SELECT * FROM `Users` WHERE `Username` = %s;"bsmith1"
+2020-09-30 16:45:26.374253 - SELECT * FROM `Users` WHERE `Email` = %s;"bsmith@gmail.com"
+2020-09-30 16:45:26.674516 - SELECT * FROM `Users` WHERE `Username` = %s;"bsmith"
+2020-09-30 16:45:26.854779 - INSERT INTO `Users` (`Username`,`Password`,`FirstName`,`LastName`,`Birthday`,`Email`,`Phone`,`Balance`,`Type`,`Active`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);["bsmith", "Test1", "Bob", "Smith", "1995-08-19", "bsmith@gmail.com", "2319087733", 0.0, "tenant", 0]
+2020-09-30 16:45:32.006904 - SELECT * FROM `Users` []
+2020-09-30 16:47:12.616532 - SELECT * FROM `Users` []
+2020-09-30 18:01:53.109464 - SELECT * FROM `Users` []
+2020-09-30 18:01:58.964835 - SELECT * FROM `Users` []
+2020-09-30 18:07:55.258502 - SELECT * FROM `Users` []
+2020-09-30 18:07:58.382465 - SELECT * FROM `Users` WHERE `Username` = %s;"tenant1"
+2020-09-30 18:08:12.035409 - SELECT * FROM `Users` WHERE `Username` = %s;"landlord1"
+2020-10-01 16:15:41.802635 - SELECT * FROM `Users` []
+2020-10-01 16:15:43.818176 - SELECT * FROM `Users` WHERE `Username` = %s;"landlord1"
+2020-10-03 11:33:04.946809 - SELECT * FROM `Contracts` []
+2020-10-03 11:34:15.152419 - SELECT * FROM `Contracts` []
+2020-10-03 11:35:38.435829 - SELECT * FROM `Contracts` []
+2020-10-03 11:37:44.595911 - SELECT * FROM `Contracts` []
+2020-10-03 11:41:14.773103 - SELECT * FROM `Contracts` []
+2020-10-03 11:43:52.438525 - SELECT * FROM `Users` WHERE `Username` = %s;"bsmith"
+2020-10-03 14:05:53.467758 - SELECT * FROM `Bills` []
+2020-10-03 14:06:12.791103 - SELECT * FROM `Bills` []
+2020-10-03 15:49:26.870169 - SELECT * FROM `Bills` []
+2020-10-03 15:49:32.444332 - SELECT * FROM `Contracts` []
+2020-10-03 15:49:34.919709 - SELECT * FROM `Users` WHERE `Username` = %s;"bsmith"
+2020-10-03 15:55:03.538278 - SELECT * FROM `Users` []
+2020-10-03 15:56:41.945433 - SELECT * FROM `Users` WHERE `Email` = %s;"sbro@property.com"
+2020-10-03 15:56:42.269016 - SELECT * FROM `Users` WHERE `Username` = %s;"sarahb"
+2020-10-03 15:56:42.443280 - INSERT INTO `Users` (`Username`,`Password`,`FirstName`,`LastName`,`Birthday`,`Email`,`Phone`,`Balance`,`Type`,`Active`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);["sarahb", "Password1", "Sarah", "Brooks", "1988-06-15", "sbro@property.com", "7165349876", 0.0, "landlord", 0]
+2020-10-03 15:56:49.568991 - SELECT * FROM `Users` []
+2020-10-03 15:57:57.859259 - SELECT * FROM `Users` WHERE `Username` = %s;"sarahb"
+2020-10-03 15:59:54.054332 - SELECT * FROM `Users` WHERE `Email` = %s;"jdoe@aol.com"
+2020-10-03 15:59:54.402097 - SELECT * FROM `Users` WHERE `Username` = %s;"jdoe1"
+2020-10-03 16:01:25.214673 - SELECT * FROM `Users` WHERE `Email` = %s;"jdoe1@aol.com"
+2020-10-03 16:01:25.565607 - SELECT * FROM `Users` WHERE `Username` = %s;"jdoe1"
+2020-10-03 16:01:25.712922 - INSERT INTO `Users` (`Username`,`Password`,`FirstName`,`LastName`,`Birthday`,`Email`,`Phone`,`Balance`,`Type`,`Active`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);["jdoe1", "Password1", "John", "Doe", "1984-09-19", "jdoe1@aol.com", "9847306629", 0.0, "tenant", 0]
+2020-10-03 16:01:28.583386 - SELECT * FROM `Users` []

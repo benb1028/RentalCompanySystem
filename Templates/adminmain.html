@@ -8,8 +8,9 @@
 	  </div>
     {% endif %}
 	<br><br>
-	<a href="users">Manage Users</a><br>
-
-	
+	<a href={{ url_for('allusers') }}>Manage Users</a><br>
+	<a href={{ url_for('aunits') }}>Manage Units</a><br>
+	<a href={{ url_for('acontracts') }}>Manage Contracts</a><br>
+	<a href={{ url_for('abills') }}>Manage Bills</a><br>
 	
 {% endblock %}

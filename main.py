@@ -3,11 +3,12 @@ from flask import render_template
 from flask import request, session, redirect, url_for, escape, send_from_directory, make_response
 
 from user import userList
-from building import buildingList
+from bill import billList
 from unit import unitList
 from transaction import transactionList
-from relationship import relationList
-
+from contract import contractList
+from datetime import datetime as dt
+from datetime import date
 import pymysql,json,time
 
 from flask_session import Session  #serverside sessions
@@ -18,51 +19,11 @@ SESSION_TYPE = 'filesystem'
 app.config.from_object(__name__)
 Session(app)
 
-@app.route('/set')
-def set():
-    session['time'] = time.time()
-    return 'set'
-    
-@app.route('/get')
-def get():
-    return str(session['time'])
-    
-@app.route('/select')
-def select():
-    return render_template('select.html', title='Select Test')
+@app.errorhandler(404)
+def not_found(error):
+    # if user attempts to visit an invalid url, render an error page and diresct to main menu
+    return render_template("404.html"), 404
 
-@app.route('/selectData')
-def selectData():    
-    u = userList()
-    if request.args.get('term') is not None:
-        u.getLikeField('email',request.args.get('term'))
-    data = {'results':[],'pagination':{"more": 'false'}}
-    
-    
-    for row in u.data:
-        res = {}
-        res['id'] = row['id']
-        res['text'] = str(row['email']) + ' ' +   str(row['lname'])
-        data['results'].append(res)
-    
-    return json.dumps(data)
-    #required schema for select2 AJAX dropdown:
-    '''{
-          "results": [
-            {
-              "id": 1,
-              "text": "Option 1"
-            },
-            {
-              "id": 2,
-              "text": "Option 2"
-            }
-          ],
-          "pagination": {
-            "more": true
-          }
-        }'''
- 
 @app.route('/login',methods = ['GET','POST'])
 def login():
     '''
@@ -73,23 +34,20 @@ def login():
     '''
     print('-------------------------')
     if request.form.get('email') is not None and request.form.get('password') is not None:
+        # if the form has been filled out, try login
         u = userList()
         if u.tryLogin(request.form.get('email'),request.form.get('password')):
-            print('login ok')
-            session['user'] = u.data[0]
+            # if login is successful, set session and redirect to home
+            session['UserID'] = u.data[0]['UserID']
+            session['Username'] = u.data[0]['Username']
             session['active'] = time.time()
-            if session['user']['type'] == 'admin':
-                return redirect('/a')
-            elif session['user']['type'] == 'landlord':
-                return redirect('/l')
-            elif session['user']['type'] == 'tenant':
-                return redirect('/t')
-            else:
-                return redirect('/main')
+            session['access'] = u.data[0]['Type']
+            return redirect(url_for('home'))
         else:
-            print('login failed')
+            # if unsuccessful, display login page again
             return render_template('login.html', title='Login', msg='Incorrect login.')
     else:
+        # if the login form has not been filled out, display login page
         if 'msg' not in session.keys() or session['msg'] is None:
             m = 'Type your email and password to continue.'
         else:
@@ -99,85 +57,190 @@ def login():
     
 @app.route('/logout',methods = ['GET','POST'])
 def logout():
-    del session['user'] 
-    del session['active'] 
+    session.clear()
     return render_template('login.html', title='Login', msg='Logged out.')
 
 @app.route('/')
 def home():
     if checkSession() == False:
+        session['msg'] = "Please login to continue."
         return redirect('login')
     else:
-        if session['user']['type'] == 'admin':
-            return redirect('/a')
-        elif session['user']['type'] == 'landlord':
-            return redirect('/l')
-        elif session['user']['type'] == 'tenant':
-            return redirect('/t')
+        if session['access'] == 'admin':
+            return redirect(url_for('adminmain'))
+        elif session['access'] == 'landlord':
+            return redirect(url_for('landlordmain'))
+        elif session['access'] == 'tenant':
+            return redirect(url_for('tenantmain'))
         else:
-            return redirect('/login')
+            return redirect(url_for('login'))
     #return render_template('test.html', title='Test2', msg='Welcome!')
 
 @app.route('/a')
 def adminmain():
-    if checkSession() == True and checkAccess('admin') == True:
-        return render_template('adminmain.html', title='Main Menu', msg=m)
+    if checkAccess('admin') == True:
+        return render_template('adminmain.html', title='Main Menu', msg=session.get('msg'))
     else:
-        return redirect('/login')
+        return redirect(url_for('login'))
     
-@app.route('/l')
-def landlordmain():
-    if checkSession() == True and checkAccess('landlord') == True:
-        return render_template('landmain.html', title='Main Menu', msg=m)
+    
+@app.route('/l/<string:username>')
+def landlordmain(username):
+    if checkAccess('landlord') == True:
+        return render_template('landmain.html', title='Main Menu', msg=session.get('msg'))
     else:
-        return redirect('/login')
+        return redirect(url_for('login'))
 
-@app.route('/t')
-def tenantmain():
+@app.route('/t/<string:username>')
+def tenantmain(username):
     if checkSession() == True and checkAccess('tenant') == True:
-        return render_template('tenantmain.html', title='Main Menu', msg=m)
+        return render_template('tenantmain.html', title='Main Menu', msg=session.get('msg'))
     else:
-        return redirect('/login')
+        return redirect(url_for('login'))
 
 @app.route('/a/tenants')
 def tenants():
     if checkAccess('admin') == True:
         u = userList()
         u.getByField('type', 'tenant')
-        return render_template('tenents.html', title='Tenants', users=u.data)
+        return render_template('users.html', title='Tenants', users=u.data)
     else:
-        return redirect('/login')
+        return redirect(url_for('login'))
     
 @app.route('/a/landlords')
 def landlords():
     if checkAccess('admin') == True:
         u = userList()
         u.getByField('type', 'landlord')
-        return render_template('landlords.html', title='Landlords', users=u.data)
+        return render_template('users.html', title='Landlords', users=u.data)
     else:
-        return redirect('/login')
+        return redirect(url_for('login'))
     
-@app.route('/l/tenants')
-def tenantsbyll():
+@app.route('/a/contracts')
+def acontracts():
+    if checkAccess('admin') == True:
+        c = contractList()
+        c.getAll()
+        return render_template('contracts.html', title='Contracts', contracts=c.data)
+    else:
+        return redirect(url_for('home'))
+    
+@app.route('/<string:username>/contracts')
+def contracts(username):
+    uType = session.get('access')
+    if uType == 'admin':
+        viewedUserType = getUserType(username)
+        if viewedUserType == 'tenent':
+            c = contractList()
+            c.getByField('TUserName', username)
+        elif viewedUserType == 'landlord':
+            c = contractList()
+            c.getByField('LUserName', username)
+        return render_template('contracts.html', title='Contracts', contracts=c.data)
+    elif uType == 'tenent' and checkUser(username) == True:
+        c = contractList()
+        c.getByField('TUserName', username)
+        return render_template('contracts.html', title='Contracts', contracts=c.data)
+    elif uType == 'landlord' and checkUser(username) == True:
+        c = contractList()
+        c.getByField('LUserName', username)
+        return render_template('contracts.html', title='Contracts', contracts=c.data)
+    else:
+        return redirect(url_for('home'))
+    
+@app.route('/a/newunit', methods=['POST','GET'])
+def newunit():
+    if checkAccess('admin') == True:
+        l = userList()
+        l.getByField('Type', 'Landlord')
+        if request.form.get('Address1') is None:
+            u = unitList()
+            u.set('Address1', '')
+            u.set('Address2', '')
+            u.set('StdRent', 0)
+            u.set('MaxOccupancy', 0)
+            u.set('Bedrooms', 0)
+            u.set('Bathrooms', 0)
+            u.set('Area', 0)
+            u.set('LandlordID', 0)
+            u.set('CurrOccupancy', 0)
+            u.add()
+            return render_template('newunit.html', title='New Unit', unit=u.data[0], landlords=l.data)
+        else:
+            u = unitList()
+            u.set('Address1', request.form.get('Address1'))
+            u.set('Address2', request.form.get('Address2'))
+            u.set('StdRent', float(request.form.get('StdRent')))
+            u.set('MaxOccupancy', int(request.form.get('MaxOccupancy')))
+            u.set('Bedrooms', int(request.form.get('Bedrooms')))
+            u.set('Bathrooms', float(request.form.get('Bathrooms')))
+            u.set('Area', float(request.form.get('Area')))
+            u.set('LandlordID', int(request.form.get('LandlordID')))
+            u.set('CurrOccupancy', 0)
+            u.add()
+            if u.verifyNew():
+                u.insert()
+                return render_template('savedunit.html', title='Success')
+            else:
+                return render_template('newunit.html', title='Unit Not Saved', unit=u.data[0], landlords=l.data)
+    else:
+        session['msg'] = 'Access Denied. Redirected to home.'
+        return redirect(url_for('home'))
+    
+@app.route('/a/units')
+def aunits():
+    if checkAccess('admin') == True:
+        u = unitList()
+        u.getAll()
+        return render_template('units.html', title='Units', units=u.data)
+    else:
+        return redirect(url_for('home'))
+
+@app.route('/a/bills')
+def abills():
+    if checkAccess('admin') == True:
+        b = billList()
+        b.getAll()
+        return render_template('bills.html', bills=b.data)
+    else:
+        return redirect(url_for('home'))
+    
+@app.route('/<string:username>/bills')
+def bills(username):
+    uType = session.get('access')
+    if uType == 'admin':
+        viewedUserType = getUserType(username)
+        if viewedUserType == 'tenent':
+            b = billList()
+            b.getByField('TUserName', username)
+        elif viewedUserType == 'landlord':
+            b = billList()
+            b.getByField('LUserName', username)
+        return render_template('bills.html', title='Bills', bills=b.data)
+    elif uType == 'tenent' and checkUser(username) == True:
+        b = billList()
+        b.getByField('TUserName', username)
+        return render_template('bills.html', title='Bills', bills=b.data)
+    elif uType == 'landlord' and checkUser(username) == True:
+        b = billList()
+        b.getByField('LUserName', username)
+        return render_template('bills.html', title='Bills', bills=b.data)
+    else:
+        return redirect(url_for('home'))
+    
+@app.route('/l/<string:username>/tenants')
+def tenantsbyll(username):
     if checkAccess('landlord') == True:
         u = userList()
         u.getByField('type', 'tenant')
-        
-    
-@app.route('/index')
-def index():
-    user = {'username': 'Tyler'}
-    
-    
-    items = [
-        {'name':'Apple','price':2.34},
-        {'name':'Orange','price':4.88},
-        {'name':'Grape','price':2.44}
-    ]
-    return render_template('index.html', title='Home', user=user, items=items)
+        u = u.sortByManager(session.get('userid'))
+        if len(u.data) > 0:
+            return render_template('users.html', title='Tenants', users=u.data)
+        else:
+            return redirect(url_for('landlordmain'))
 
-@app.route('/users')
-def users():
+@app.route('/a/users')
+def allusers():
     if checkSession() == False: 
         return redirect('login')
     u = userList()
@@ -187,48 +250,65 @@ def users():
     #return ''
     return render_template('users.html', title='User List',  users=u.data)
     
-@app.route('/user')
-def user():
-    if checkSession() == False: 
-        return redirect('login')
+@app.route('/user/<string:username>')
+def user(username):
+    if checkUser(username) == False and checkAccess('landlord') == False:
+        session['msg'] = "You are not authorized to view this page."
+        return redirect(url_for('home'))
     u = userList()
-    if request.args.get(u.pk) is None:
-        return render_template('error.html', msg='No user id given.')  
-
-    u.getById(request.args.get(u.pk))
+    u.getByField('Username', username)
     if len(u.data) <= 0:
         return render_template('error.html', msg='User not found.')  
     
     print(u.data)
     return render_template('user.html', title='User ',  user=u.data[0])
 
-@app.route('/newuser', methods = ['GET', 'POST'])
+@app.route('/a/newuser', methods = ['GET', 'POST'])
 def newuser():
     if checkSession() == False: 
         return redirect('login')
-    if request.form.get('fname') is None:
+    if request.form.get('Username') is None:
         u = userList()
-        u.set('fname','')
-        u.set('lname','')
-        u.set('email','')
-        u.set('password','')
-        u.set('type','')
+        u.set('Username','')
+        u.set('Email', '')
+        u.set('Password','')
+        u.set('FirstName','')
+        u.set('LastName','')
+        u.set('Type','tenent')
+        u.set('Birthday', date.today().isoformat())
+        u.set('Phone', '')
+        u.set('Balance', 0.0)
+        u.set('Active', 0)
         u.add()
-        return render_template('newuser.html', title='New User',  user=u.data[0]) 
+        return render_template('newuser.html', title='New User',  user=u.data[0], today=date.today().isoformat()) 
     else:
         u = userList()
-        u.set('fname',request.form.get('fname'))
-        u.set('lname',request.form.get('lname'))
-        u.set('email',request.form.get('email'))
-        u.set('password',request.form.get('password'))
-        u.set('type',request.form.get('type'))
+        u.set('Username', request.form.get('Username'))
+        u.set('Email', request.form.get('Email'))
+        u.set('Password', request.form.get('Password'))
+        u.set('FirstName', request.form.get('FirstName'))
+        u.set('LastName', request.form.get('LastName'))
+        u.set('Type', request.form.get('Type'))
+        u.set('Birthday', request.form.get('Birthday'))
+        u.set('Phone', request.form.get('Phone'))
+        u.set('Balance', 0.0)
+        u.set('Active', 0)
         u.add()
-        if u.verifyNew():
+        if u.verifyNew() and u.passMatch(request.form.get('Password2')):
             u.insert()
             print(u.data)
             return render_template('saveduser.html', title='User Saved',  user=u.data[0])
         else:
-            return render_template('newuser.html', title='User Not Saved',  user=u.data[0], msg=u.errorList)
+            return render_template('newuser.html', title='User Not Saved',  user=u.data[0], msg=u.errorList, today=date.today().isoformat())
+
+@app.route('/edituser/<string:username>', methods = ['GET', 'POST'])
+def edituser(username):
+    if checkUser(username) == False:
+        return redirect(url_for('home'))
+    #else:
+        
+
+
 @app.route('/saveuser', methods = ['GET', 'POST'])
 def saveuser():
     if checkSession() == False: 
@@ -249,7 +329,7 @@ def saveuser():
     else:
         return render_template('user.html', title='User Not Saved',  user=u.data[0],msg=u.errorList)
     
-@app.route('/deleteuser',methods = ['GET', 'POST'])
+@app.route('/a/deleteuser',methods = ['GET', 'POST'])
 def deleteuser():
     if checkSession() == False: 
         return redirect('login')
@@ -269,36 +349,62 @@ def deleteuser():
 def main():
     if checkSession() == False: 
         return redirect('login')
-    userinfo = 'Hello, ' + session['user']['fname']
+    userinfo = 'Hello, ' + session['Username']
     return render_template('main.html', title='Main menu',msg = userinfo)  
 
 def checkSession():
-    if 'active' in session.keys():
-        timeSinceAct = time.time() - session['active']
+    lastAct = session.get('active')
+    print(lastAct)
+    if lastAct is not None:
+        timeSinceAct = time.time() - lastAct
         print(timeSinceAct)
-        if timeSinceAct > 500:
+        if timeSinceAct > 5000:
+            print("timed out.")
+            session.clear()
             session['msg'] = 'Your session has timed out.'
             return False
         else:
             session['active'] = time.time()
             return True
     else:
+        print('Login required.')
         return False
 
 def checkAccess(minAccess):
-    if checkSession == True:
-        uType = session['user']['type']
+    if checkSession() == True:
+        uType = session.get('access')
+        print(f'User is a/an {uType}, page requires {minAccess} to view.')
         if uType == 'admin':
+            print('Access granted.')
             return True
         elif uType == 'landlord':
             if minAccess == 'landlord' or minAccess == 'tenant':
+                print('Access granted.')
                 return True
         elif uType == minAccess:
+            print('Access granted.')
             return True
         else:
+            print('Access denied.')
             return False
     else:
+        print('Login required.')
         return False
+    
+def checkUser(userName):
+    curUser = session['Username']
+    if userName == curUser:
+        return True
+    else:
+        return False
+    
+def getUserType(username):
+    u = userList()
+    u.getByField('Username', username)
+    if len(u.data) == 1:
+        return u.data[0]['Type']
+    else:
+        return None
     
 @app.route('/static/<path:path>')
 def send_static(path):

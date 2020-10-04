@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Customer</h1>
+    <h1>{{ user.Username }}</h1>
 	{% if msg %}
       <div id="errormsg">
 	  {% for err in msg %}
@@ -10,40 +10,43 @@
 	  </div>
 	  {% endif %}
 	  
-	<form action="/saveuser" method="POST">
-		First Name:<br>
-		<input type="text" name="fname" value="{{ user.fname }}" /><br><br>
-		
-		Last Name:<br>
-		<input type="text" name="lname" value="{{ user.lname }}" /><br><br>
-		
-		Email:<br>
-		<input type="text" name="email" value="{{ user.email }}" /><br><br>
-		
-		<input type="hidden" name="id" value="{{ user.id }}" />
-		
-		Password:<br>
-		<input type="password" name="password" /><br><br>
-		
-		Retype Password:<br>
-		<input type="password" name="password2" /><br><br>
-		
-		Type:<br>
-		<select name="Type">
-			<option value=0 >Tenant</option>
-			<option value=1 >Landlord</option>
-			<option value=2 >Admin</option>
-		</select>
-		
-		<br><br>
-		
-		<input type="submit" value="Save user"/>
-			
+	<table>
+		<tr>
+			<th>Username</th>
+			<th>First Name</th>
+			<th>Last Name</th>
+			<th>Email</th>
+			<th>Phone Number</th>
+			<th>Birthday</th>
+			<th>Account Type</th>
+			<th>Balance Owed</th>
+		</tr>
+		<tr>
+			<td>{{ user.Username }}</td>
+			<td>{{ user.FirstName }}</td>
+			<td>{{ user.LastName }}</td>
+			<td>{{ user.Email }}</td>
+			<td>{{ user.Phone }}</td>
+			<td>{{ user.Birthday }}</td>
+			<td>{{ user.Type }}</td>
+			<td>{{ user.Balance }}</td>
+		</tr>
+	</table>	
+	<br><br>
+		<form action={{ url_for('edituser', username=user.Username) }} method="POST">
+			<input type="submit" value="Change Email" />
+			<input type="hidden" name="field" value="Email" />
 		</form>
-		<br><br>
-		
-		<form action="/deleteuser" method="POST">
+		<form action={{ url_for('edituser', username=user.Username) }} method="POST">
+			<input type="submit" value="Change Phone Number" />
+			<input type="hidden" name="field" value="Phone" />
+		</form>
+		<form action={{ url_for('edituser', username=user.Username) }} method="POST">
+			<input type="submit" value="Change Email" />
+			<input type="hidden" name="field" value="Email" />
+		</form>
+		<form action={{ url_for('deleteuser') }} method="POST">
 			<input type="submit" value="Delete this user" />
-			<input type="hidden" name="id" value="{{ user.id }}" />
+			<input type="hidden" name="id" value={{ user.id }} />
 		</form>
 {% endblock %}

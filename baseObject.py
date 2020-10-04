@@ -149,3 +149,4 @@ class baseObject:
         debug_str = str(now) +' - ' +sql + json.dumps(tokens) + '\n'
         f.write(debug_str)
         f.close()
+        

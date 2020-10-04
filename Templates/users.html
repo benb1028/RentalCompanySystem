@@ -2,18 +2,20 @@
 
 {% block content %}
     <h1>Users</h1>
-		<a href="newuser">Add new User</a>
+		<a href={{ url_for('newuser') }}>Add new User</a>
 		<table>
 		<tr>
-			<td>id</td>
-			<td>name</td>
-			<td>email</td>
+			<td>Username</td>
+			<td>Name</td>
+			<td>Email</td>
+			<td>Type</td>
 		</tr>
     {% for user in users %}
 		<tr>
-			<td><a href="user?id={{ user.id }}">{{ user.id }}</a></td>
-			<td>{{ user.fname }} {{ user.lname }}</td>
-			<td>{{ user.email }}</td>
+			<td><a href={{ url_for('user', username=user.Username) }}>{{ user.Username }}</a></td>
+			<td>{{ user.FirstName }} {{ user.LastName }}</td>
+			<td>{{ user.Email }}</td>
+			<td>{{ user.Type }}</td>
 		</tr>
     {% endfor %}
 	</table>
