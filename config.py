@@ -1,1 +1,0 @@
-DB = {'host':'mysql.clarksonmsda.org', 'port':3306, 'user':'brooksb', 'passwd':'Password1', 'db':'brooksb_RentalCompany'}
