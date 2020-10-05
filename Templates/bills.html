@@ -2,7 +2,9 @@
 
 {% block content %}
     <h1>Bills</h1>
-		
+	{% if session.get('access') == 'landlord' %}
+		<a href={{ url_for('newbill', username=session.get('Username')) }}>Add new bill<a/>
+	{% endif %}
 		<table>
 		<tr>
 			<th>ID</th>

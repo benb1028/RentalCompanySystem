@@ -2,7 +2,9 @@
 
 {% block content %}
     <h1>Units</h1>
+	{% if session.get('access') == 'admin' %}
 		<a href={{ url_for('newunit') }}>Add new unit</a>
+	{% endif %}
 		<table>
 		<tr>
 			<th>ID</th>
@@ -13,7 +15,7 @@
 		</tr>
     {% for unit in units %}
 		<tr>
-			<td><a href="unit?id={{ unit.UID }}">{{ unit.UID }}</a></td>
+			<td>{{ unit.UID }}</a></td>
 			<td>{{ unit.Address1 }}</td>
 			<td>{{ unit.Address2 }}</td>
 			<td>{{ unit.LandlordID }}</td>

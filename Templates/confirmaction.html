@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Ok</h1>
+    <h1>Success</h1>
 	<div class="msgText">
 	{% if msg %}
      {{ msg }}
@@ -9,5 +9,5 @@
      Operation complete.
       {% endif %}
 	</div>
-	<a href="/main">Go Back to menu</a>
+	<a href={{ url_for('home') }}>Main Menu</a>
 {% endblock %}

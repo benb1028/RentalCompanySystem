@@ -1,45 +1,20 @@
-
-
+from datetime import date
 import pymysql
 from baseObject import baseObject
 
 
 class billList(baseObject):
-    #this is the assignment
+    # billList object for the Bills table
     def __init__(self):
         self.setupObject('Bills')
         
     def verifyNew(self,n=0):
+        # check data for invalid entries, add any errors to errorList
         self.errorList = []
-        
-        b = billList()
-        b.getByField('BID',self.data[n]['BID'])
-        if len(b.data) > 0:
-            self.errorList.append("Bill ID already exists.")
-        
-        
-        if len(self.data[n]['Address']) == 0:
-            self.errorList.append("Address cannot be blank.")
-        if len(self.data[n]['MonthlyCost']) == 0:
-            self.errorList.append("Cost cannot be blank.")
-        #Add if statements for validation of other fields
-  
-        if len(self.errorList) > 0:
-            return False
-        else:
-            return True
-    def verifyChange(self,n=0):
-        self.errorList = []
-        
-        b = billList()
-        b.getByField('BID',self.data[n]['BID'])
-        #print(b.data)
-        if len(b.data) > 0:
-            print(self.data[n])
-            print(b.data[0])
-            if str(self.data[n]['BID']) != str(b.data[0]['BID']):
-                self.errorList.append("Bill ID already exists.")
-        
+        if date.fromisoformat(self.data[n]['DateDue']) < date.today():
+            self.errorList.append("Cannot be due before today.")
+        if self.data[n]['AmntDue'] <= 0:
+            self.errorList.append("Amount due must be greater than 0.")
         if len(self.errorList) > 0:
             return False
         else:

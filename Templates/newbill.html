@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>New Bill</h1>
+	{% if msg %}
+      <div id="errormsg">
+	  {% for err in msg %}
+		{{ err }}<br>
+	  {% endfor %}
+	  </div>
+    {% endif %}
+		
+		<form action={{ url_for('newbill', username=username) }} method="POST">
+			Amount Due:<br>
+			<input type="number" value="{{ bill.AmntDue }}" name="AmntDue" /><br><br>
+			
+			Due Date:<br>
+			<input type="date" value="{{ bill.DateDue }}" name="DateDue" /><br><br>
+			
+			Tenant:<br>
+			<select name="TenantID">
+				{% for tenant in tenants %}
+					<option value={{ tenant.UserID }}>{{ tenant.Username }}</option>
+				{% endfor %}
+			</select><br><br>
+
+			<input type="submit" value="Save Bill"/>
+			
+		</form>
+{% endblock %}

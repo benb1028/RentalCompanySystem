@@ -2,10 +2,9 @@ from flask import Flask
 from flask import render_template
 from flask import request, session, redirect, url_for, escape, send_from_directory, make_response
 
-from user import userList
+from user import userList, getUserType
 from bill import billList
 from unit import unitList
-from transaction import transactionList
 from contract import contractList
 from datetime import datetime as dt
 from datetime import date
@@ -21,7 +20,7 @@ Session(app)
 
 @app.errorhandler(404)
 def not_found(error):
-    # if user attempts to visit an invalid url, render an error page and diresct to main menu
+    # if user attempts to visit an invalid url, render an error page and direct to main menu
     return render_template("404.html"), 404
 
 @app.route('/login',methods = ['GET','POST'])
@@ -57,15 +56,17 @@ def login():
     
 @app.route('/logout',methods = ['GET','POST'])
 def logout():
+    # clear all session variables and go to login page
     session.clear()
     return render_template('login.html', title='Login', msg='Logged out.')
 
 @app.route('/')
 def home():
+    # check to make sure user is logged in, redirect to login if not
     if checkSession() == False:
         session['msg'] = "Please login to continue."
         return redirect('login')
-    else:
+    else: # determine user type and redirect to proper home page
         if session['access'] == 'admin':
             return redirect(url_for('adminmain'))
         elif session['access'] == 'landlord':
@@ -74,50 +75,56 @@ def home():
             return redirect(url_for('tenantmain'))
         else:
             return redirect(url_for('login'))
-    #return render_template('test.html', title='Test2', msg='Welcome!')
+    
 
 @app.route('/a')
 def adminmain():
+    # if user is admin, render admin home page
     if checkAccess('admin') == True:
         return render_template('adminmain.html', title='Main Menu', msg=session.get('msg'))
-    else:
-        return redirect(url_for('login'))
+    else: 
+        return redirect(url_for('home'))
     
     
-@app.route('/l/<string:username>')
-def landlordmain(username):
+@app.route('/l')
+def landlordmain():
+    #if user is landlord, render landlord home page
     if checkAccess('landlord') == True:
         return render_template('landmain.html', title='Main Menu', msg=session.get('msg'))
     else:
-        return redirect(url_for('login'))
+        return redirect(url_for('home'))
 
-@app.route('/t/<string:username>')
-def tenantmain(username):
-    if checkSession() == True and checkAccess('tenant') == True:
+@app.route('/t')
+def tenantmain():
+    # if user is tenant, render tenant home page
+    if checkAccess('tenant') == True:
         return render_template('tenantmain.html', title='Main Menu', msg=session.get('msg'))
     else:
-        return redirect(url_for('login'))
+        return redirect(url_for('home'))
 
 @app.route('/a/tenants')
 def tenants():
+    # if user is admin, display list of all tenants
     if checkAccess('admin') == True:
         u = userList()
         u.getByField('type', 'tenant')
         return render_template('users.html', title='Tenants', users=u.data)
     else:
-        return redirect(url_for('login'))
+        return redirect(url_for('home'))
     
 @app.route('/a/landlords')
 def landlords():
+    # if user is admin, display list of all landlords
     if checkAccess('admin') == True:
         u = userList()
         u.getByField('type', 'landlord')
         return render_template('users.html', title='Landlords', users=u.data)
     else:
-        return redirect(url_for('login'))
+        return redirect(url_for('home'))
     
 @app.route('/a/contracts')
 def acontracts():
+    # if user is admin, display list of all contracts
     if checkAccess('admin') == True:
         c = contractList()
         c.getAll()
@@ -127,21 +134,25 @@ def acontracts():
     
 @app.route('/<string:username>/contracts')
 def contracts(username):
+    # display all contracts associated with username
     uType = session.get('access')
     if uType == 'admin':
+        # if user is admin, find the type of the requested username and display their contracts
         viewedUserType = getUserType(username)
-        if viewedUserType == 'tenent':
+        if viewedUserType == 'tenant':
             c = contractList()
             c.getByField('TUserName', username)
         elif viewedUserType == 'landlord':
             c = contractList()
             c.getByField('LUserName', username)
         return render_template('contracts.html', title='Contracts', contracts=c.data)
-    elif uType == 'tenent' and checkUser(username) == True:
+    elif uType == 'tenant' and checkUser(username) == True:
+        # if user is a tenant and is the requested username, display their contracts
         c = contractList()
         c.getByField('TUserName', username)
         return render_template('contracts.html', title='Contracts', contracts=c.data)
     elif uType == 'landlord' and checkUser(username) == True:
+        # if user is a landlord and is the requested username, display their contracts
         c = contractList()
         c.getByField('LUserName', username)
         return render_template('contracts.html', title='Contracts', contracts=c.data)
@@ -151,9 +162,10 @@ def contracts(username):
 @app.route('/a/newunit', methods=['POST','GET'])
 def newunit():
     if checkAccess('admin') == True:
+        # get list of landlords to choose from for new unit
         l = userList()
         l.getByField('Type', 'Landlord')
-        if request.form.get('Address1') is None:
+        if request.form.get('Address1') is None: # form unfilled, render form with defaults
             u = unitList()
             u.set('Address1', '')
             u.set('Address2', '')
@@ -166,7 +178,7 @@ def newunit():
             u.set('CurrOccupancy', 0)
             u.add()
             return render_template('newunit.html', title='New Unit', unit=u.data[0], landlords=l.data)
-        else:
+        else: # form filled, get values from form 
             u = unitList()
             u.set('Address1', request.form.get('Address1'))
             u.set('Address2', request.form.get('Address2'))
@@ -177,18 +189,20 @@ def newunit():
             u.set('Area', float(request.form.get('Area')))
             u.set('LandlordID', int(request.form.get('LandlordID')))
             u.set('CurrOccupancy', 0)
+            u.set('HasRoom', 1)
             u.add()
-            if u.verifyNew():
+            if u.verifyNew(): # verify values for new unit, insert into table if valid
                 u.insert()
                 return render_template('savedunit.html', title='Success')
-            else:
-                return render_template('newunit.html', title='Unit Not Saved', unit=u.data[0], landlords=l.data)
-    else:
+            else: # if invalid, render form again with the entered data
+                return render_template('newunit.html', title='Unit Not Saved', unit=u.data[0], landlords=l.data, msg=u.errorList)
+    else: # if not admin, redirect home
         session['msg'] = 'Access Denied. Redirected to home.'
         return redirect(url_for('home'))
     
 @app.route('/a/units')
 def aunits():
+    # if admin, display all units
     if checkAccess('admin') == True:
         u = unitList()
         u.getAll()
@@ -196,8 +210,62 @@ def aunits():
     else:
         return redirect(url_for('home'))
 
+@app.route('/a/newcontract', methods=['POST', 'GET'])
+def newcontract():
+    # allow admin to create a new contract between a tenant and unit/landlord
+    if checkAccess('admin') == True:
+        # get list of tenants
+        t = userList()
+        t.getByField('Type', 'tenant')
+        # get list of availible units
+        u = unitList()
+        u.getByField('HasRoom', 1)
+        if request.form.get('MonthlyCharge') is None: # form unfilled, render with defaults
+            c = contractList()
+            c.set('StartDate', date.today().isoformat())
+            c.set('EndDate', date.today().isoformat())
+            c.set('MonthlyCharge', 0.0)
+            c.set('Active', 1)
+            c.set('TUserName', '')
+            c.set('LUserName', '')
+            c.set('TenantID', 0)
+            c.set('LandlordID', 0)
+            c.set('UID', 0)
+            c.add()
+            return render_template('newcontract.html', title="New Contract",
+                                   contract=c.data[0], tenants=t.data,
+                                   units=u.data)
+        else: # form filled, get values
+            c = contractList()
+            u1 = unitList()
+            u1.getById(request.form.get('UID'))
+            t1 = userList()
+            t1.getById(request.form.get('TenantID'))
+            l1 = userList()
+            l1.getById(u1.data[0]['LandlordID'])
+            c.set('StartDate', request.form.get('StartDate'))
+            c.set('EndDate', request.form.get('EndDate'))
+            c.set('MonthlyCharge', float(request.form.get('MonthlyCharge')))
+            c.set('Active', 1)
+            c.set('TUserName', t1.data[0]['Username'])
+            c.set('LUserName', l1.data[0]['Username'])
+            c.set('TenantID', request.form.get('TenantID'))
+            c.set('LandlordID', u1.data[0]['LandlordID'])
+            c.set('UID', request.form.get('UID'))
+            c.add()
+            if c.verifyNew(): # check values for new contract, if valid insert into db and redirect to contracts page
+                c.insert()
+                session['msg'] = 'Contract Saved.'
+                return redirect(url_for('acontracts'))
+            else: 
+                return render_template('newcontract.html', title='Contract Not Saved', 
+                                       contract=c.data[0], tenants=t.data, units=u.data)
+    else:
+        return redirect(url_for('home'))
+    
 @app.route('/a/bills')
 def abills():
+    # if admin, display all bills
     if checkAccess('admin') == True:
         b = billList()
         b.getAll()
@@ -207,81 +275,127 @@ def abills():
     
 @app.route('/<string:username>/bills')
 def bills(username):
+    # display all bills associated with username
     uType = session.get('access')
-    if uType == 'admin':
+    if uType == 'admin': # if admin, find user type of given username and display their bills
         viewedUserType = getUserType(username)
-        if viewedUserType == 'tenent':
+        if viewedUserType == 'tenant':
             b = billList()
             b.getByField('TUserName', username)
         elif viewedUserType == 'landlord':
             b = billList()
             b.getByField('LUserName', username)
         return render_template('bills.html', title='Bills', bills=b.data)
-    elif uType == 'tenent' and checkUser(username) == True:
+    elif uType == 'tenant' and checkUser(username) == True:
+        # if user is a tenant and the username matches, display their bills
         b = billList()
         b.getByField('TUserName', username)
         return render_template('bills.html', title='Bills', bills=b.data)
     elif uType == 'landlord' and checkUser(username) == True:
+        # if user is a landlord and the username matches, display their bills
         b = billList()
         b.getByField('LUserName', username)
         return render_template('bills.html', title='Bills', bills=b.data)
     else:
+        # if user is not an admin and attempting to view someone elses bill, redirect home
         return redirect(url_for('home'))
     
 @app.route('/l/<string:username>/tenants')
 def tenantsbyll(username):
-    if checkAccess('landlord') == True:
+    # if username is a landlord and the user is either username or admin, show the tenants who have a contract with username
+    if getUserType(username) == 'landlord' and (checkUser(username) == True or checkAccess('admin')):
         u = userList()
-        u.getByField('type', 'tenant')
-        u = u.sortByManager(session.get('userid'))
+        u.getTenants(username)
         if len(u.data) > 0:
             return render_template('users.html', title='Tenants', users=u.data)
         else:
+            session['msg'] = 'No tenants to show.'
             return redirect(url_for('landlordmain'))
+    else:
+        return redirect(url_for('home'))
+    
+@app.route('/l/<string:username>/newbill', methods = ['POST', 'GET'])
+def newbill(username):
+    # allow landlords to create a new bill for one of their tenants
+    if checkUser(username) and getUserType(username) == 'landlord':
+        # get list of valid tenants
+        t = userList()
+        t.getTenants(username)
+        if request.form.get('AmntDue') is None: # form unfilled, render with defaults
+            b = billList()
+            b.set('AmntDue', 0)
+            b.set('DateDue', date.today().isoformat())
+            b.set('BillerUserID', session.get('UserID'))
+            b.add()
+            return render_template('newbill.html', title='New Bill',
+                                   bill=b.data, tenants=t.data, username=username)
+        else: # form filled, get data from forms
+            b = billList()
+            t1 = userList()
+            t1.getById(request.form.get('TenantID'))
+            b.set('AmntDue', float(request.form.get('AmntDue')))
+            b.set('DateDue', request.form.get('DateDue'))
+            b.set('BilledUserID', request.form.get('TenantID'))
+            b.set('DateBilled', date.today().isoformat())
+            b.set('AmntPaid', 0)
+            b.set('DatePaid', None)
+            b.set('BillerUserID', session.get('UserID'))
+            b.set('TUserName', t1.data[0]['Username'])
+            b.set('LUserName', username)
+            b.add()
+            if b.verifyNew(): # if new data is valid, insert into database and redirect to bills screen
+                b.insert()
+                session['msg'] = "Bill Added."
+                return redirect(url_for('bills', username=username))
+            else: # if invalid, try again
+                return render_template('newbill.html', title='Bill Not Saved',
+                                       bill=b.data, tenants=t.data, username=username)
+    else:
+        return redirect(url_for('home'))
 
 @app.route('/a/users')
 def allusers():
-    if checkSession() == False: 
-        return redirect('login')
-    u = userList()
-    u.getAll()
-    
-    print(u.data)
-    #return ''
-    return render_template('users.html', title='User List',  users=u.data)
+    # if admin, show all users
+    if checkAccess('admin') == True: 
+        u = userList()
+        u.getAll()
+        return render_template('users.html', title='User List',  users=u.data)
+    else:
+        return redirect(url_for('home'))
     
 @app.route('/user/<string:username>')
 def user(username):
+    # check if user is same as username or if an admin or landlord
     if checkUser(username) == False and checkAccess('landlord') == False:
         session['msg'] = "You are not authorized to view this page."
         return redirect(url_for('home'))
     u = userList()
     u.getByField('Username', username)
-    if len(u.data) <= 0:
-        return render_template('error.html', msg='User not found.')  
-    
-    print(u.data)
-    return render_template('user.html', title='User ',  user=u.data[0])
+    if len(u.data) != 1: # show error if username is not found or duplicates are found
+        return render_template('error.html', msg='User not found.')
+    else: 
+        return render_template('user.html', title=u.data[0]['Username'],  user=u.data[0])
 
 @app.route('/a/newuser', methods = ['GET', 'POST'])
 def newuser():
-    if checkSession() == False: 
-        return redirect('login')
-    if request.form.get('Username') is None:
+    # allow admin to create a new user
+    if checkAccess('admin') == False: 
+        return redirect(url_for('home'))
+    if request.form.get('Username') is None: # form empty, render blank form
         u = userList()
         u.set('Username','')
         u.set('Email', '')
         u.set('Password','')
         u.set('FirstName','')
         u.set('LastName','')
-        u.set('Type','tenent')
+        u.set('Type','tenant')
         u.set('Birthday', date.today().isoformat())
         u.set('Phone', '')
         u.set('Balance', 0.0)
         u.set('Active', 0)
         u.add()
         return render_template('newuser.html', title='New User',  user=u.data[0], today=date.today().isoformat()) 
-    else:
+    else: # form filled, retrieve values
         u = userList()
         u.set('Username', request.form.get('Username'))
         u.set('Email', request.form.get('Email'))
@@ -295,70 +409,31 @@ def newuser():
         u.set('Active', 0)
         u.add()
         if u.verifyNew() and u.passMatch(request.form.get('Password2')):
+            # verify new user data and insert if valid
             u.insert()
-            print(u.data)
             return render_template('saveduser.html', title='User Saved',  user=u.data[0])
-        else:
+        else: # if invalid, render form again
             return render_template('newuser.html', title='User Not Saved',  user=u.data[0], msg=u.errorList, today=date.today().isoformat())
 
-@app.route('/edituser/<string:username>', methods = ['GET', 'POST'])
-def edituser(username):
-    if checkUser(username) == False:
-        return redirect(url_for('home'))
-    #else:
-        
-
-
-@app.route('/saveuser', methods = ['GET', 'POST'])
-def saveuser():
-    if checkSession() == False: 
-        return redirect('login')
-    u = userList()
-    u.set('id',request.form.get('id'))
-    u.set('fname',request.form.get('fname'))
-    u.set('lname',request.form.get('lname'))
-    u.set('email',request.form.get('email'))
-    u.set('password',request.form.get('password'))
-    u.set('subscribed',request.form.get('type'))
-    u.add()
-    if u.verifyChange():
-        u.update()
-        #print(u.data)
-        #return ''
-        return render_template('saveduser.html', title='User Saved',  user=u.data[0])
-    else:
-        return render_template('user.html', title='User Not Saved',  user=u.data[0],msg=u.errorList)
     
 @app.route('/a/deleteuser',methods = ['GET', 'POST'])
 def deleteuser():
-    if checkSession() == False: 
-        return redirect('login')
+    # if admin, get id and delete the user
+    if checkAccess('admin') == False: 
+        return redirect(url_for('home'))
     print("User id:",request.form.get('id')) 
     #return ''
     u = userList()
     u.deleteById(request.form.get('id'))
     return render_template('confirmaction.html', title='User Deleted',  msg='User deleted.')
-    '''
-    <form action="/deletecustomer" method="POST">
-			<input type="submit" value="Delete this customer" />
-			<input type="hidden" name="id" value="{{ customer.id }}" />
-		</form>
-    '''
 
-@app.route('/main')
-def main():
-    if checkSession() == False: 
-        return redirect('login')
-    userinfo = 'Hello, ' + session['Username']
-    return render_template('main.html', title='Main menu',msg = userinfo)  
 
 def checkSession():
+    # get time of last action, clear session if timed out, otherwise update active time 
     lastAct = session.get('active')
-    print(lastAct)
     if lastAct is not None:
         timeSinceAct = time.time() - lastAct
-        print(timeSinceAct)
-        if timeSinceAct > 5000:
+        if timeSinceAct > 50000:
             print("timed out.")
             session.clear()
             session['msg'] = 'Your session has timed out.'
@@ -371,6 +446,7 @@ def checkSession():
         return False
 
 def checkAccess(minAccess):
+    # check the user in session to see if they meet minAccess
     if checkSession() == True:
         uType = session.get('access')
         print(f'User is a/an {uType}, page requires {minAccess} to view.')
@@ -392,171 +468,14 @@ def checkAccess(minAccess):
         return False
     
 def checkUser(userName):
+    # return true if username matches that in session
     curUser = session['Username']
     if userName == curUser:
         return True
     else:
         return False
     
-def getUserType(username):
-    u = userList()
-    u.getByField('Username', username)
-    if len(u.data) == 1:
-        return u.data[0]['Type']
-    else:
-        return None
-    
-@app.route('/static/<path:path>')
-def send_static(path):
-    return send_from_directory('static', path)
-
-
 if __name__ == '__main__':
    app.secret_key = '1234'
    app.run(host='127.0.0.1',debug=True)   
    
-   
-   
-   
-   
-   
-'''
-================================================================
-START EVENT PAGES:
-=================================================================
-'''
-'''
-@app.route('/events')
-def events():
-    if checkSession() == False: 
-        return redirect('login')
-    e = eventList()
-    e.getAll()
-    
-    #print(e.data)
-    #return ''
-    return render_template('event/events.html', title='Event List',  events=e.data)
-    
-@app.route('/event')
-def event():
-    if checkSession() == False: 
-        return redirect('login')
-    e = eventList()
-    if request.args.get(e.pk) is None:
-        return render_template('error.html', msg='No event id given.')  
-
-    e.getById(request.args.get(e.pk))
-    if len(e.data) <= 0:
-        return render_template('error.html', msg='Event not found.')  
-    
-    print(e.data)
-    return render_template('event/event.html', title='Event ',  event=e.data[0])  
-@app.route('/newevent',methods = ['GET', 'POST'])
-def newevent():
-    if checkSession() == False: 
-        return redirect('login')
-    if request.form.get('name') is None:
-        e = eventList()
-        e.set('name','')
-        e.set('start','')
-        e.set('end','')
-        e.add()
-        return render_template('event/newevent.html', title='New Event',  event=e.data[0]) 
-    else:
-        e = eventList()
-        e.set('name',request.form.get('name'))
-        e.set('start',request.form.get('start'))
-        e.set('end',request.form.get('end'))
-        e.add()
-        if e.verifyNew():
-            e.insert()
-            print(e.data)
-            return render_template('event/savedevent.html', title='Event Saved',  event=e.data[0])
-        else:
-            return render_template('event/newevent.html', title='Event Not Saved',  event=e.data[0],msg=e.errorList)
-@app.route('/saveevent',methods = ['GET', 'POST'])
-def saveevent():
-    if checkSession() == False: 
-        return redirect('login')
-    e = eventList()
-    e.set('eid',request.form.get('eid'))
-    e.set('name',request.form.get('name'))
-    e.set('start',request.form.get('start'))
-    e.set('end',request.form.get('end'))
-    e.add()
-    if e.verifyChange():
-        e.update()
-        #print(e.data)
-        #return ''
-        return render_template('event/savedevent.html', title='Event Saved',  event=e.data[0])
-    else:
-        return render_template('event/event.html', title='Event Not Saved',  event=e.data[0],msg=e.errorList)
-
-'''
-'''
-================================================================
-END EVENT PAGES
-=================================================================
-'''
-'''
-================================================================
-START REVIEW PAGES:
-=================================================================
-'''
-'''
-@app.route('/newreview',methods = ['GET', 'POST'])
-def newreview():
-    if checkSession() == False: 
-        return redirect('login')
-    allEvents = eventList()
-    allEvents.getAll()
-    if request.form.get('review') is None:
-        r = reviewList()
-        r.set('event_id','')
-        r.set('customer_id','')
-        r.set('review','')
-        r.add()
-        return render_template('review/newreview.html', title='New Review',  review=r.data[0],el=allEvents.data) 
-    else:
-        r = reviewList()
-        r.set('event_id',request.form.get('event_id'))
-        r.set('customer_id',session['user']['id'])
-        r.set('review',request.form.get('review'))
-        r.add()
-        if r.verifyNew():
-            r.insert()
-            print(r.data)
-            return render_template('review/savedreview.html', title='Review Saved',  review=r.data[0])
-        else:
-            return render_template('review/newreview.html', title='Review Not Saved',  review=r.data[0],msg=r.errorList,el=allEvents.data)
-@app.route('/savereview',methods = ['GET', 'POST'])
-def savereview():
-    if checkSession() == False: 
-        return redirect('login')
-    r = reviewList()
-    r.set('aid',request.form.get('aid'))
-    r.set('event_id',request.form.get('event_id'))
-    r.set('customer_id',request.form.get('customer_id'))
-    r.set('review',request.form.get('review'))
-    r.add()
-    r.update()
-    #print(e.data)
-    #return ''
-    return render_template('review/savedreview.html', title='Review Saved',  review=r.data[0])
-
-@app.route('/myreviews')
-def myreviews():
-    if checkSession() == False: 
-        return redirect('login')
-    r = reviewList()
-    r.getByCustomer(session['user']['id'])
-    #print(r.data)
-    #return ''
-    return render_template('myreviews.html', title='My Reviews',  reviews=r.data)
-   
-'''
-'''
-================================================================
-END REVIEW PAGES
-=================================================================
-'''

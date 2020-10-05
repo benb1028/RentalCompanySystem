@@ -8,7 +8,7 @@
 	  </div>
     {% endif %}
 	<br><br>
-	<a href="tenantsbyll">Manage Tenants</a><br>
+	<a href={{ url_for('tenantsbyll', username=session.get('Username')) }}>Manage Tenants</a><br>
 	<a href={{ url_for('contracts', username=session.get('Username')) }}>Manage Contracts</a><br>
 	<a href={{ url_for('bills',username=session.get('Username')) }}>Manage Bills</a><br>
 	

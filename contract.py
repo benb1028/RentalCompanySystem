@@ -1,59 +1,28 @@
-
+from datetime import date
 import pymysql
 from baseObject import baseObject
-from user import userList
 
 
 class contractList(baseObject):
-    #this is the assignment
+    # contract list object for Contracts table
     def __init__(self):
         self.setupObject('Contracts')
         
     def verifyNew(self,n=0):
+        # check data for errors, append errors to errorList
         self.errorList = []
-        
-        c = contractList()
-        c.getByField('CID',self.data[n]['CID'])
-        if len(t.data) > 0:
-            self.errorList.append("Contract ID already exists.")
-        
-        
-        # if self.data[n]['Amnt'] <= 0:
-        #     self.errorList.append("Amount must be greater than 0.")
-        # if self.data[n]['RType'] != 0 and self.data[n]['RType'] != 1:
-        #     self.errorList.append("Type must be 1 or 2.")
-        # u1 = userList()
-        # u1.getById(self.data[n]['UserID'])
-        # if len(u1.data['UserID']) == 0:
-        #     self.errorList.append("User does not exist.")
-        # u2 = unitList()
-        # u2.getById(self.data[n]['UnitID'])
-        # if len(u2.data['UnitID']) == 0:
-        #     self.errorList.append("Unit does not exist.")
-        # #Add if statements for validation of other fields
-  
+        if date.fromisoformat(self.data[n]['EndDate']) < date.today():
+            self.errorList.append("Contract cannot end on past dates.")
+        if date.fromisoformat(self.data[n]['EndDate']) < date.fromisoformat(self.data[n]['StartDate']):
+            self.errorList.append("End Date must be after Start Date")
+        if self.data[n]['MonthlyCharge'] < 0:
+            self.errorList.append("Monthly charge must be at least $0.00")  
         if len(self.errorList) > 0:
             return False
         else:
             return True
         
         
-    def verifyChange(self,n=0):
-        self.errorList = []
-        
-        c = contractList()
-        c.getByField('CID',self.data[n]['CID'])
-        #print(r.data)
-        if len(c.data) > 0:
-            print(self.data[n])
-            print(c.data[0])
-            if str(self.data[n]['CID']) != str(c.data[0]['CID']):
-                self.errorList.append("Contract ID already exists.")
-        
-        if len(self.errorList) > 0:
-            return False
-        else:
-            return True
 
     
     

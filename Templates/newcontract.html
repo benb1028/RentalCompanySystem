@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>New Contract</h1>
+	{% if msg %}
+      <div id="errormsg">
+	  {% for err in msg %}
+		{{ err }}<br>
+	  {% endfor %}
+	  </div>
+    {% endif %}
+		
+		<form action={{ url_for('newcontract') }} method="POST">
+			Start Date:<br>
+			<input type="date" value={{ contract.StartDate }} name="StartDate" /><br><br>
+			
+			End Date:<br>
+			<input type="date" value={{ contract.EndDate }} name="EndDate" /><br><br>
+			
+			Monthly Charge:<br>
+			<input type="number" value={{ contract.MonthlyCharge }} name="MonthlyCharge" min="0.00" /><br><br>
+			
+			Tenant:<br>
+			<select name="TenantID">
+				{% for tenant in tenants %}
+					<option value={{ tenant.UserID }}>{{ tenant.Username }}</option>
+				{% endfor %}
+			</select><br><br>
+			
+			Unit:<br>
+			<select name="UID">
+				{% for unit in units %}
+					<option value={{ unit.UID }} >{{ unit.Address1 }} {{ unit.Address2 }}</option>
+				{% endfor %}
+			</select>
+			
+			<br>
+			
+			<input type="submit" value="Save Contract"/>
+			
+		</form>
+{% endblock %}

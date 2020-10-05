@@ -4,11 +4,12 @@ from baseObject import baseObject
 
 
 class unitList(baseObject):
-    #this is the assignment
+    # object for Units table
     def __init__(self):
         self.setupObject('Units')
         
     def verifyNew(self,n=0):
+        # check data for validity, append any errors to errorList
         self.errorList = []
         if self.hasDuplicates('Address1', n) and self.hasDuplicates('Address2', n):
             self.errorList.append("A unit at this address already exists.")
@@ -30,26 +31,9 @@ class unitList(baseObject):
             return False
         else:
             return True
-        
-    def verifyChange(self,n=0):
-        self.errorList = []
-        
-        u = unitList()
-        u.getByField('UID',self.data[n]['UID'])
-        #print(u.data)
-        if len(u.data) > 0:
-            print(self.data[n])
-            print(u.data[0])
-            if str(self.data[n]['UID']) != str(b.data[0]['UID']):
-                self.errorList.append("Unit ID already exists.")
-        
-        if len(self.errorList) > 0:
-            return False
-        else:
-            return True
-
     
     def hasDuplicates(self, field, n=0):
+        # check db for entries with the same value at a field
         u = unitList()
         u.getByField(field, self.data[n][field])
         if len(u.data) > 0:
