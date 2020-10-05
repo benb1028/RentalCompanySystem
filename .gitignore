@@ -1,9 +1,6 @@
 config.py
 logs/
 *.__wz_cache
-flask_session/f1e6ff7992b5b139c35579e10ec70754
-flask_session/638b54b4fb68eacb6cb81f4416cad889
-flask_session/41e947744839f3c4249f9a8389e11322
+flask_session/
 *.pyc
-*.pyc
-*.pyc
+
