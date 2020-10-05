@@ -1,6 +1,6 @@
 config.py
-logs/
+logs/**
 *.__wz_cache
-flask_session/
+flask_session/**
 *.pyc
 
